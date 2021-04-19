@@ -1,3 +1,8 @@
 <layout id="MainLayout">
-    <bitmap id="id_monkey" x="center" y="center" filename="../drawables/monkey.png" />
+    <label text="@Strings.CurrDistFromStrt" 
+    x="center" 
+    y="40"
+    font="Gfx.FONT_SMALL" 
+    color="Gfx.COLOR_WHITE"
+    justification="Gfx.TEXT_JUSTIFY_CENTER" />
 </layout>

@@ -53,8 +53,37 @@ class GarminDistanceView extends WatchUi.View {
             return;
         }
 
-        distance = distance + 1;
+        Position.enableLocationEvents(Position.LOCATION_ONE_SHOT, method( :onPositionUpdate ) );
+    }
+
+    function onPositionUpdate(updatedPosition) {
+        System.println( "Updated position " + updatedPosition.position.toGeoString( Position.GEO_DM ) );
+        var initPosRad = initialPosition.position.toRadians();
+        var updatedPositionRad = updatedPosition.position.toRadians();
+
+        System.println("Vals: " + initPosRad[0] + " " + initPosRad[1] + " " + updatedPositionRad[0] + " " + updatedPositionRad[1]);
+
+        distance = geodeticDistanceRad(initPosRad[0], initPosRad[1], updatedPositionRad[0], updatedPositionRad[1]).toNumber();
         WatchUi.requestUpdate();
+    }
+
+    function geodeticDistanceRad(lat1, lon1, lat2, lon2) {
+        var dy = (lat2-lat1);
+        var dx = (lon2-lon1);
+
+        var sy = Math.sin(dy / 2);
+        sy *= sy;
+
+        var sx = Math.sin(dx / 2);
+        sx *= sx;
+
+        var a = sy + Math.cos(lat1) * Math.cos(lat2) * sx;
+
+        // you'll have to implement atan2
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+        var R = 6371000; // radius of earth in meters
+        return R * c;
     }
 
     // Update the view

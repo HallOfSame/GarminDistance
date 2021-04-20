@@ -1,4 +1,5 @@
 using Toybox.WatchUi;
+using Toybox.Timer;
 
 class GarminDistanceViewBehaviorDelegate extends WatchUi.BehaviorDelegate {
 
@@ -10,7 +11,7 @@ class GarminDistanceViewBehaviorDelegate extends WatchUi.BehaviorDelegate {
     }
 
     function onSelect() {
-        distanceView.updateDistance();
+        distanceView.toggleGps();
         return true;
     }
 }
@@ -18,13 +19,27 @@ class GarminDistanceViewBehaviorDelegate extends WatchUi.BehaviorDelegate {
 class GarminDistanceView extends WatchUi.View {
 
     hidden var distance;
+    hidden var status;
     hidden var gettingLoc;
     hidden var initialPosition;
+    hidden var gpsIsOn;
+    hidden var setStatusOffTextTimer;
+
+    hidden var qualityText = {
+        Position.QUALITY_NOT_AVAILABLE => "NO SIGNAL",
+        Position.QUALITY_LAST_KNOWN => "LAST",
+        Position.QUALITY_POOR => "POOR",
+        Position.QUALITY_USABLE => "USABLE",
+        Position.QUALITY_GOOD => "GOOD"
+    };
 
     function initialize() {
         View.initialize();
         distance = 0;
         gettingLoc = false;
+        gpsIsOn = false;
+        status = "GPS off";
+        setStatusOffTextTimer = new Timer.Timer();
     }
 
     // Load your resources here
@@ -67,47 +82,55 @@ class GarminDistanceView extends WatchUi.View {
         initialPosition = info;
     }
 
-    function updateDistance() {
+    function toggleGps() {
         if (initialPosition == null) {
             return;
         }
+        
+        if(gpsIsOn) {
+            gpsIsOn = false;
+            Position.enableLocationEvents(Position.LOCATION_DISABLE, method( :onPositionUpdate ) );
 
-        var view = new WatchUi.ProgressBar("Getting new GPS fix", null);
-        WatchUi.pushView(view, null, WatchUi.SLIDE_IMMEDIATE);
-
-        getUpdatedPosition();
+            // Seems to have issues if we don't delay this change
+            // Probably from the last loc update
+            setStatusOffTimed();
+        } else {
+            gpsIsOn = true;
+            status = "GPS on";
+            WatchUi.requestUpdate();
+            Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method( :onPositionUpdate ) );            
+        }
     }
 
-    function getUpdatedPosition() {
-        Position.enableLocationEvents(Position.LOCATION_ONE_SHOT, method( :onPositionUpdate ) );
+    function setStatusOffTimed() {
+        setStatusOffTextTimer.start(method( :setStatusOff ), 500, false);
+    }
+    
+    function setStatusOff() {
+        System.println("status off fired");
+        status = "GPS off";
+        WatchUi.requestUpdate();
     }
 
     function onPositionUpdate(updatedPosition) {
         if (updatedPosition == null || updatedPosition.accuracy == null) {
             System.println("Updated position null");
-            getUpdatedPosition();
             return;
         }
 
-        if (updatedPosition.accuracy != Position.QUALITY_GOOD) {
-            System.println("Invalid accuracy " + updatedPosition.accuracy);
-            getUpdatedPosition();
-            return;
-        }
-
-        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
+        status = "GPS " + qualityText[updatedPosition.accuracy];
 
         System.println( "Updated position " + updatedPosition.position.toGeoString( Position.GEO_DM ) );
+
         var initPosRad = initialPosition.position.toRadians();
         var updatedPositionRad = updatedPosition.position.toRadians();
-
-        System.println("Vals: " + initPosRad[0] + " " + initPosRad[1] + " " + updatedPositionRad[0] + " " + updatedPositionRad[1]);
 
         distance = geodeticDistanceRad(initPosRad[0], initPosRad[1], updatedPositionRad[0], updatedPositionRad[1]).toNumber();
         WatchUi.requestUpdate();
     }
 
     function geodeticDistanceRad(lat1, lon1, lat2, lon2) {
+        // Fancy distance formula from the internet
         var dy = (lat2-lat1);
         var dx = (lon2-lon1);
 
@@ -119,7 +142,6 @@ class GarminDistanceView extends WatchUi.View {
 
         var a = sy + Math.cos(lat1) * Math.cos(lat2) * sx;
 
-        // you'll have to implement atan2
         var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
         var R = 6371000; // radius of earth in meters
@@ -128,12 +150,16 @@ class GarminDistanceView extends WatchUi.View {
 
     // Update the view
     function onUpdate(dc) {
-        // Call the parent onUpdate function to redraw the layout
-        View.onUpdate(dc);
-
         // Set our distance text
         var distanceText = View.findDrawableById("distanceText");
         distanceText.setText(distance + " ft");
+
+        // Set our status text
+        var statusText = View.findDrawableById("statusText");
+        statusText.setText(status);
+
+        // Call the parent onUpdate function to redraw the layout
+        View.onUpdate(dc);
     }
 
     // Called when this View is removed from the screen. Save the

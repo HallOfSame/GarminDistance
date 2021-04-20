@@ -11,4 +11,10 @@
     font="Gfx.FONT_MEDIUM"
     color="Gfx.COLOR_WHITE" 
     justification="Gfx.TEXT_JUSTIFY_CENTER" />
+    <label id="statusText"
+    x="center"
+    y="180"
+    font="Gfx.FONT_MEDIUM"
+    color="Gfx.COLOR_WHITE" 
+    justification="Gfx.TEXT_JUSTIFY_CENTER" />
 </layout>

@@ -44,6 +44,14 @@ class GarminDistanceView extends WatchUi.View {
     }
 
     function onInitialPosition(info) {
+        if (info == null || info.accuracy == null) {
+            return;
+        }
+
+        if (info.accuracy != Position.QUALITY_GOOD) {
+            return;
+        }
+
         System.println( "Position " + info.position.toGeoString( Position.GEO_DM ) );
         initialPosition = info;
     }
@@ -57,6 +65,14 @@ class GarminDistanceView extends WatchUi.View {
     }
 
     function onPositionUpdate(updatedPosition) {
+        if (updatedPosition == null || updatedPosition.accuracy == null) {
+            return;
+        }
+
+        if (updatedPosition.accuracy != Position.QUALITY_GOOD) {
+            return;
+        }
+
         System.println( "Updated position " + updatedPosition.position.toGeoString( Position.GEO_DM ) );
         var initPosRad = initialPosition.position.toRadians();
         var updatedPositionRad = updatedPosition.position.toRadians();
@@ -100,6 +116,8 @@ class GarminDistanceView extends WatchUi.View {
     // state of this View here. This includes freeing resources from
     // memory.
     function onHide() {
+        initialPosition = null;
+        gettingLoc = false;
     }
 
 }

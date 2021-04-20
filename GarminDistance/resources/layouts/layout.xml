@@ -5,4 +5,9 @@
     font="Gfx.FONT_SMALL" 
     color="Gfx.COLOR_WHITE"
     justification="Gfx.TEXT_JUSTIFY_CENTER" />
+    <label id="distanceText"
+    x="center"
+    y="120"
+    font="Gfx.FONT_NUMBER_MEDIUM"
+    color="Gfx.COLOR_WHITE" />
 </layout>

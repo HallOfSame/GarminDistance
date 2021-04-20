@@ -2,8 +2,6 @@ using Toybox.WatchUi;
 
 class GarminDistanceView extends WatchUi.View {
 
-    hidden var distanceText;
-
     hidden var distance;
 
     function initialize() {
@@ -19,14 +17,7 @@ class GarminDistanceView extends WatchUi.View {
     // Called when this View is brought to the foreground. Restore
     // the state of this View and prepare it to be shown. This includes
     // loading resources into memory.
-    function onShow() {
-        distanceText = new WatchUi.Text({
-            :text=>distance.toString(),
-            :color=>Graphics.COLOR_WHITE,
-            :font=>Graphics.FONT_NUMBER_MEDIUM,
-            :locX=>WatchUi.LAYOUT_HALIGN_CENTER,
-            :locY=>120
-        });
+    function onShow() {        
     }
 
     // Update the view
@@ -34,8 +25,11 @@ class GarminDistanceView extends WatchUi.View {
         // Call the parent onUpdate function to redraw the layout
         View.onUpdate(dc);
 
+        var distanceText = View.findDrawableById("distanceText");
+
         distance = distance + 1;
-        distanceText.draw(dc);
+
+        distanceText.setText(distance.toString());
     }
 
     // Called when this View is removed from the screen. Save the

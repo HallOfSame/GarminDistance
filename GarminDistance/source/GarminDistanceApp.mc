@@ -16,7 +16,8 @@ class GarminDistanceApp extends Application.AppBase {
 
     // Return the initial view of your application here
     function getInitialView() {
-        return [ new GarminDistanceView() ];
+        var view = new GarminDistanceView();
+        return [ view, new GarminDistanceViewBehaviorDelegate(view) ];
     }
 
 }

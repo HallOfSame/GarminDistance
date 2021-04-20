@@ -18,10 +18,13 @@ class GarminDistanceViewBehaviorDelegate extends WatchUi.BehaviorDelegate {
 class GarminDistanceView extends WatchUi.View {
 
     hidden var distance;
+    hidden var gettingLoc;
+    hidden var initialPosition;
 
     function initialize() {
         View.initialize();
         distance = 0;
+        gettingLoc = false;
     }
 
     // Load your resources here
@@ -32,10 +35,24 @@ class GarminDistanceView extends WatchUi.View {
     // Called when this View is brought to the foreground. Restore
     // the state of this View and prepare it to be shown. This includes
     // loading resources into memory.
-    function onShow() {        
+    function onShow() {  
+        if (!gettingLoc) {
+            gettingLoc = true;
+            System.println("Getting position");
+            Position.enableLocationEvents(Position.LOCATION_ONE_SHOT, method( :onInitialPosition ) );
+        }      
+    }
+
+    function onInitialPosition(info) {
+        System.println( "Position " + info.position.toGeoString( Position.GEO_DM ) );
+        initialPosition = info;
     }
 
     function updateDistance() {
+        if (initialPosition == null) {
+            return;
+        }
+
         distance = distance + 1;
         WatchUi.requestUpdate();
     }
@@ -47,7 +64,7 @@ class GarminDistanceView extends WatchUi.View {
 
         // Set our distance text
         var distanceText = View.findDrawableById("distanceText");
-        distanceText.setText(distance.toString());
+        distanceText.setText(distance + " ft");
     }
 
     // Called when this View is removed from the screen. Save the

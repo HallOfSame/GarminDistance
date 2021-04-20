@@ -8,6 +8,7 @@
     <label id="distanceText"
     x="center"
     y="120"
-    font="Gfx.FONT_NUMBER_MEDIUM"
-    color="Gfx.COLOR_WHITE" />
+    font="Gfx.FONT_MEDIUM"
+    color="Gfx.COLOR_WHITE" 
+    justification="Gfx.TEXT_JUSTIFY_CENTER" />
 </layout>
